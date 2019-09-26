@@ -1,0 +1,67 @@
+version: '3.7'
+services: 
+  sql-server:
+    image: mcr.microsoft.com/mssql/server:2017-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=PasswordnyaSA2018
+      - MSSQL_PID=Developer
+    ports:
+      - 1433:1433
+    volumes:
+      - sqlserver_data:/var/opt/mssql/
+    networks: 
+      - share-network
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.3.2
+    ports:
+      - 9300:9300
+      - 9200:9200
+    environment:
+      - http.cors.enabled=true
+      - http.cors.allow-origin=*
+      - http.cors.allow-methods=OPTIONS,HEAD,GET,POST,PUT,DELETE
+      - http.cors.allow-headers=X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
+      - transport.host=127.0.0.1
+      - cluster.name=docker-cluster
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - share-network
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.3.2
+    ports:
+      - 5601:5601
+    networks:
+      - share-network
+    depends_on:
+      - elasticsearch
+  logstash:
+    build: 
+      dockerfile: ${PWD}/Dockerfile
+      context: ${PWD}/
+    environment:
+      - LOGSTASH_JDBC_URL=jdbc:sqlserver://sql-server:1433;databaseName=master;integratedSecurity=false;
+      - LOGSTASH_JDBC_DRIVER=com.microsoft.sqlserver.jdbc.SQLServerDriver
+      - LOGSTASH_JDBC_DRIVER_JAR_LOCATION=/usr/share/logstash/logstash-core/lib/jars/mssql-jdbc.jar
+      - LOGSTASH_JDBC_USERNAME=sa
+      - LOGSTASH_JDBC_PASSWORD=PasswordnyaSA2018
+      - LOGSTASH_ELASTICSEARCH_HOST=http://elasticsearch:9200
+    volumes: 
+      - ./sqlserver-jdbc-input.conf:/usr/share/logstash/pipeline/logstash.conf
+    ports:
+      - 9600:9600
+      - 5044:5044
+    networks:
+      - share-network
+    depends_on:
+      - elasticsearch
+      - kibana
+      - sql-server
+volumes:
+  elasticsearch_data:
+  sqlserver_data:
+networks:
+  share-network:
