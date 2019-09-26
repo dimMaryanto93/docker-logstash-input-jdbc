@@ -41,8 +41,8 @@ services:
       - elasticsearch
   logstash:
     build: 
-      dockerfile: ./Dockerfile
-      context: ./
+      dockerfile: ${PWD}/Dockerfile
+      context: ${PWD}/
     environment:
       - LOGSTASH_JDBC_URL=jdbc:mysql://mysql:3306/example?useSSL=false
       - LOGSTASH_JDBC_DRIVER=com.mysql.cj.jdbc.Driver
