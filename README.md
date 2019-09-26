@@ -1,9 +1,15 @@
 ## Starting logstash 
 
-Starting logstash input jdbc for mysql database plugin is super simple. with this command
+Starting logstash input jdbc
 
-```docker
-docker run --name logstash-name -p 9600:9600 -p 5044:5044 dimmaryanto93/logstash-input-jdbc-mysql:tag
+```bash
+docker-compose -f compose/db-platform/docker-compose.version.yaml -p project_name up --build
+```
+
+Stoping all service
+
+```bash
+docker-compose -f compose/db-platform/docker-compose.version.yaml -p project_name down --rmi local
 ```
 
 ## Customize configuration
