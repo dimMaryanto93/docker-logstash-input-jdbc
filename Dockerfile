@@ -9,6 +9,6 @@ RUN /usr/share/logstash/bin/logstash-plugin install logstash-filter-mutate
 
 # copy lib database jdbc jars
 COPY ./compose/mysql/mysql-connector-java-8.0.11.jar /usr/share/logstash/logstash-core/lib/jars/mysql-connector-java.jar
-COPY ./mssql-jdbc-7.2.2.jre8.jar /usr/share/logstash/logstash-core/lib/jars/mssql-jdbc.jar
-COPY ./ojdbc6-11.2.0.4.jar /usr/share/logstash/logstash-core/lib/jars/ojdbc6.jar
-COPY ./postgresql-9.4.1212.jre7.jar /usr/share/logstash-core/lib/jars/logstash/postgresql.jar
+COPY ./compose/sql-server/mssql-jdbc-7.2.2.jre8.jar /usr/share/logstash/logstash-core/lib/jars/mssql-jdbc.jar
+COPY ./compose/oracle/ojdbc6-11.2.0.4.jar /usr/share/logstash/logstash-core/lib/jars/ojdbc6.jar
+COPY ./compose/postgres/postgresql-42.2.8.jar /usr/share/logstash/logstash-core/lib/jars/postgresql.jar
