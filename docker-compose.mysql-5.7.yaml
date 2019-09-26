@@ -1,0 +1,68 @@
+version: '3.7'
+services: 
+  mysql:
+    image: tabeldata.ip-dynamic.com:8088/mysql:5.7
+    ports: 
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=admin
+      - MYSQL_DATABASE=example
+      - MYSQL_USER=admin
+      - MYSQL_PASSWORD=admin
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks: 
+      - share-network
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.3.2
+    ports:
+      - 9300:9300
+      - 9200:9200
+    environment:
+      - http.cors.enabled=true
+      - http.cors.allow-origin=*
+      - http.cors.allow-methods=OPTIONS,HEAD,GET,POST,PUT,DELETE
+      - http.cors.allow-headers=X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
+      - transport.host=127.0.0.1
+      - cluster.name=docker-cluster
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - share-network
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.3.2
+    ports:
+      - 5601:5601
+    networks:
+      - share-network
+    depends_on:
+      - elasticsearch
+  logstash:
+    build: 
+      dockerfile: ./Dockerfile
+      context: ./
+    environment:
+      - LOGSTASH_JDBC_URL=jdbc:mysql://mysql:3306/example?useSSL=false
+      - LOGSTASH_JDBC_DRIVER=com.mysql.cj.jdbc.Driver
+      - LOGSTASH_JDBC_DRIVER_JAR_LOCATION=/usr/share/logstash/logstash-core/lib/jars/mysql-connector-java.jar
+      - LOGSTASH_JDBC_USERNAME=admin
+      - LOGSTASH_JDBC_PASSWORD=admin
+      - LOGSTASH_ELASTICSEARCH_HOST=http://elasticsearch:9200
+    volumes: 
+      - ./mysql-jdbc-input-plugin.conf:/usr/share/logstash/pipeline/logstash.conf
+    ports:
+      - 9600:9600
+      - 5044:5044
+    networks:
+      - share-network
+    depends_on:
+      - elasticsearch
+      - kibana
+      - mysql
+volumes:
+  elasticsearch_data:
+  mysql_data:
+networks:
+  share-network:
